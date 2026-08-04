@@ -3,10 +3,13 @@ FROM composer:2 AS composer
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
 COPY . .
+
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction
+
 RUN composer dump-autoload --optimize
 
 # Stage 2: PHP + Apache
