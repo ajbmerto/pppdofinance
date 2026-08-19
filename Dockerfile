@@ -1,58 +1,63 @@
-# Stage 1: Build dependencies
-FROM composer:2 AS composer
-
-WORKDIR /app
-
-COPY . .
-
-RUN composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-interaction
-
-RUN composer dump-autoload --optimize
-
-# Stage 2: PHP + Apache
 FROM php:8.3-apache
 
-# Install system dependencies and PHP extensions
+WORKDIR /var/www/html
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
-    zip \
     libzip-dev \
     libpng-dev \
-    libjpeg62-turbo-dev \
+    libjpeg-dev \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
-        pdo \
         pdo_mysql \
-        mysqli \
         mbstring \
-        zip \
-        gd \
         exif \
-    && a2enmod rewrite \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        opcache \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+# Enable Apache rewrite
+RUN a2enmod rewrite
 
-COPY --from=composer /app ./
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copy Laravel application
+COPY . .
+
+# Install PHP dependencies
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction
+
+# Install Node.js
+RUN apt-get update && apt-get install -y nodejs npm \
+    && npm install \
+    && npm run build \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configure Apache
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf \
-    /etc/apache2/apache2.conf \
-    /etc/apache2/conf-available/*.conf
+# Laravel permissions
+RUN chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
 
-# Set permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+RUN chmod -R 775 \
+    storage \
+    bootstrap/cache
 
 EXPOSE 80
 
