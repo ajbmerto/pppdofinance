@@ -126,23 +126,54 @@
 
                         <!-- Status Selector (Obligated vs Under Procurement) -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Fund Allocation Status</label>
-                            <div class="grid grid-cols-2 gap-3">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Status</label>
+                            <div class="grid grid-cols-1 gap-3">
                                 <!-- Radio Option 1: Obligated -->
-                                <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition focus-within:ring-2 focus-within:ring-indigo-500">
+                               <!--  <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition focus-within:ring-2 focus-within:ring-indigo-500">
                                     <input type="radio" name="status" id = "obligatedstat" value="obligated" checked class="sr-only" onchange="runLiveCalculations()">
                                     <span class="text-xs font-bold text-slate-800">Obligated</span>
                                     <span class="text-[10px] text-slate-400 mt-0.5">Contract awarded / Committed</span>
                                     <span class="absolute top-3 right-3 text-emerald-500 radio-check">●</span>
                                 </label>
                                 
-                                <!-- Radio Option 2: Under Procurement -->
                                 <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition focus-within:ring-2 focus-within:ring-indigo-500">
                                     <input type="radio" name="status" id = "onprocstat" value="underproc" class="sr-only" onchange="runLiveCalculations()">
                                     <span class="text-xs font-bold text-slate-800">Procurement</span>
                                     <span class="text-[10px] text-slate-400 mt-0.5">In bidding / RFQ phase</span>
                                     <span class="absolute top-3 right-3 text-amber-500 hidden radio-check">●</span>
-                                </label>
+                                </label> -->
+                                <div>
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-0.5">PROCUREMENT LEVEL</span>
+                                    <select name="status" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm bg-white focus:ring-2 focus:ring-slate-950 focus:border-slate-950 transition">
+                                        <optgroup label="Planning Stage">
+                                            <option value="Planning stage|Market Scoping"> Market Scoping </option>
+                                            <option value="Planning stage|Activity Design"> Activity design (preparation, approval)  </option>
+                                            <option value="Planning stage|AWFP/APP/PPMP"> AWFP/PPMP/APP revision and approval  </option>
+                                        </optgroup>
+                                        <optgroup label="Pre-procurement">
+                                            <option value="Pre-procurement|abc"> ABC </option>
+                                            <option value="Pre-procurement|pr"> PR </option>
+                                        </optgroup>
+                                        <optgroup label="Procurement">
+                                            <option value="underproc|rfq"> RFQ </option>
+                                            <option value="underproc|posting"> POSTING </option>
+                                            <option value="underproc|bidding"> BIDDING </option>
+                                            <option value="underproc|bac reso"> BAC RESO </option>
+                                            <option value="underproc|ntp/noa"> NTP/NOA </option>
+                                            <option value="underproc|po"> PO </option>
+                                        </optgroup>
+                                        <optgroup label="Obligation">
+                                            <option value="obligated|Activity done"> Activity --done </option>
+                                            <option value="obligated|liquidation done"> Liquidation –done (30 days for local, 60 days for International) </option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+<!--                                 <div>
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-0.5">PROCUREMENT STAGE</span>
+                                    <select class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm bg-white focus:ring-2 focus:ring-slate-950 focus:border-slate-950 transition">
+                                        <option> hello </option>  
+                                    </select>
+                                </div> -->
                             </div>
                         </div>
 
@@ -213,6 +244,7 @@
                                 <th class="py-3 px-4">Program & Activity</th>
                                 <th class="py-3 px-3 text-center">Timeline</th>
                                 <th class="py-3 px-3 text-center">Status</th>
+                                <th class="py-3 px-3 text-center">Sub-status</th>
                                 <th class="py-3 px-4 text-right">Amount</th>
                                 <?php if ($action == "enable") { ?>
                                     <th class="py-3 px-4 text-center">Action</th>
@@ -491,6 +523,11 @@
                     <td class="py-3 px-3 text-center">
                         <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'Obligated' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100':'bg-amber-50 text-amber-700 border border-amber-100'}">
                             ${item.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'Obligated' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100':'bg-amber-50 text-amber-700 border border-amber-100'}">
+                            ${item.substat}
                         </span>
                     </td>
                     <td class="py-3 px-4 text-right font-mono text-slate-900 font-bold">${toUSD(item.amount)}</td>`;

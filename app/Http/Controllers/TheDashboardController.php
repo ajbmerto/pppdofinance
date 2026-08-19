@@ -103,4 +103,8 @@ class TheDashboardController extends Controller
 
 		return 0;
 	}
+
+	function employeemgt() {
+		return view("dashboard.employeemgt");
+	}
 }

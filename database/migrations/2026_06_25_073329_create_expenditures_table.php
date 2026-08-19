@@ -18,7 +18,8 @@ return new class extends Migration
 			$table->string("fundvalue");
 			$table->date("startdate");
 			$table->date("enddate");
-			$table->enum("expendituretype",["obligated","underproc","undef"])->default("undef");
+			$table->enum("expendituretype",["obligated","underproc","Planning stage","Pre-procurement","undef"])->default("undef");
+            $table->enum("expdeep",["Market Scoping","Activity Design","AWFP/APP/PPMP","abc","pr","rfq","posting","bidding","bac reso","ntp/noa","po","Activity done","liquidation done"]);
 			$table->enum("qtr",["1st","2nd","3rd","4th","undef"])->default("undef");
             $table->timestamps();
         });

@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
 	Route::get("/removeitem/{itemid?}",[InputFrontController::class,"removeitem"])->name("removeitem");
 
 	Route::get("/getdetails/{theidid?}",[InputFrontController::class,"getdetails"])->name("getdetails");
+
+	Route::get("/employee",[TheDashboardController::class,"employeemgt"])->name("employeemgt");
 });
 
 Route::get("/getfunds", [TheDashboardController::class,"getfunds"])->name("getfunds");

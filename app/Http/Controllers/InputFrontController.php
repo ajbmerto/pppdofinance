@@ -50,7 +50,8 @@ class InputFrontController extends Controller
 			$ep->fundvalue 			= str_replace(",","",$req->input("input_value"));
 			$ep->startdate  		= date("Y-m-d", strtotime($req->input("t_start")));
 			$ep->enddate    		= date("Y-m-d", strtotime($req->input("t_end")));
-			$ep->expendituretype    = $req->input("status");
+			$ep->expendituretype    = explode("|", $req->input("status"))[0];
+			$ep->expdeep 			= explode("|", $req->input("status"))[1];
 			$ep->qtr 				= 1;
 			$ep->save();
 		} else if ($action == "update") {
@@ -61,7 +62,8 @@ class InputFrontController extends Controller
 					    'fundvalue'       => str_replace(",", "", $req->input("input_value")),
 					    'startdate'       => date("Y-m-d", strtotime($req->input("t_start"))),
 					    'enddate'         => date("Y-m-d", strtotime($req->input("t_end"))),
-					    'expendituretype' => $req->input("status"),
+					    'expendituretype' => explode("|", $req->input("status"))[0],
+					    'expdeep'		  => explode("|", $req->input("status"))[1],
 					    'qtr'             => 1,
 					]);
 		} else {
@@ -109,8 +111,27 @@ class InputFrontController extends Controller
 		$activityrecords 	= [];
 
 		$status			 	= [
-			"obligated"	=> "Obligated",
-			"underproc" => "Under Procurement"
+			"obligated"		 => "Obligated",
+			"underproc" 	 => "Under Procurement",
+			"Planning stage" => "Planning stage",
+			"Pre-procurement" => "Pre-procurement",
+			"undef"			 => "undefined"
+		];
+
+		$substat = [
+			"Market Scoping" 		=> "Market Scoping",
+			"Activity Design"		=> "Activity Design",
+			"AWFP/APP/PPMP"			=> "AWFP/APP/PPMP",
+			"abc"				    => "Approved Budget for the Contract",
+			"pr"					=> "Purchase Request",
+			"rfq"					=> "Request for Quotation",
+			"posting"				=> "Posting",
+			"bidding"				=> "Bidding",
+			"bac reso"				=> "Bac Reso",
+			"ntp/noa"				=> "Notice to Proceed/Award",
+			"po"					=> "Purchase Request",
+			"Activity done"			=> "Activity conducted",
+			"liquidation done"		=> "Liquidation Completed"
 		];
 
 		foreach($activityrec as $ar) {
@@ -121,6 +142,7 @@ class InputFrontController extends Controller
 				"start"		=> date("Y-m-d",strtotime($ar->startdate)),
 				"end"		=> date("Y-m-d",strtotime($ar->enddate)),
 				"status"	=> $status[$ar->expendituretype],
+				"substat"   => $substat[$ar->expdeep],
 				"amount"	=> (int) $ar->fundvalue,
 			];
 			array_push($activityrecords,$ar_var);
