@@ -64,9 +64,9 @@
 
                 <!-- Global Action Buttons -->
                 <div class="flex items-center space-x-3">
-                    <button onclick="openEmployeeModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all-200 flex items-center shadow-sm">
-                        <i class="fa-solid fa-user-plus mr-2"></i> Add Employee
-                    </button>
+                    <a href='{{route("fundsource")}}' class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all-200 flex items-center shadow-sm">
+                        <i class="fa-solid fa-user-plus mr-2"></i> Add Fund Source
+                    </a>
                     <button onclick="openDivisionModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-all-200 flex items-center">
                         <i class="fa-solid fa-layer-group mr-2"></i> New Division
                     </button>
@@ -220,14 +220,14 @@
                                                     </div>
                                                   </td>";
                                             echo "<td>";
-                                                echo "<select id='divsel'class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
+                                                echo "<select id='divsel_{$c->id}'class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
                                                         foreach($division as $d) {
                                                             echo "<option value='{$d->divid}'> {$d->divisionname} </option>";
                                                         }
                                                  echo "</select>";
                                                  echo "</td>";
                                             echo "<td>";
-                                                echo "<select id='rolesel' class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
+                                                echo "<select id='rolesel_{$c->id}' class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
                                                     echo "<option value='normal'> Staff </option>";
                                                     echo "<option value='chief'> Division Chief </option>";
                                                 echo "</select>";
@@ -464,9 +464,13 @@
     }
 
     function saveemp(id){
-        var divsel  = document.getElementById('divsel').value; 
-        var rolesel = document.getElementById('rolesel').value; 
+        var divsel  = document.getElementById('divsel_'+id).value; 
+        var rolesel = document.getElementById('rolesel_'+id).value; 
         
+        // alert(divsel);
+        // alert(rolesel);
+        // return;
+
         const csrfToken = document
             .querySelector('meta[name="csrf-token"]')
             .getAttribute('content');

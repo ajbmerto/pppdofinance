@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
 
 	Route::get("/employee",[TheDashboardController::class,"employeemgt"])->name("employeemgt");
 	Route::post("/saveemp",[TheDivisionController::class,"saveemp"])->name("saveemp");
+
+	Route::get("/fundsource",[InputFrontController::class,"fundsource"])->name("fundsource");
+	Route::post("/savefund",[InputFrontController::class,"savefund"])->name('savefund');
 });
 
 Route::get("/getfunds", [TheDashboardController::class,"getfunds"])->name("getfunds");

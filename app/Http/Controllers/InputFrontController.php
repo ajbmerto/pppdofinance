@@ -16,6 +16,7 @@ class InputFrontController extends Controller
 	function index() {
 		$dbt 		= divbelongto::where("empid",Auth::id())->get(["divid"]);
 
+
 		if (count($dbt) == 0 ) { die("no division found"); }
 
 		$divs  		= TheDivision::where("divid",$dbt[0]->divid)->get("divisionname");
@@ -149,5 +150,22 @@ class InputFrontController extends Controller
 		}
 
 		return response()->json($activityrecords); 
+	}
+
+	function fundsource() {
+		$divs = TheDivision::all();
+		return view("dashboard.FundSource")->with(["division" => $divs]);
+	}
+
+	function savefund(Request $req) {
+
+		$fs 			= new FundSource();
+		$fs->divisionid = $req->input("divisionselect");
+		$fs->fundname 	= $req->input("fundname");
+		$fs->fundvalue  = $req->input("fundvalue");
+		$fs->yearactive	= $req->input("yearactive");
+		$fs->save();
+		
+		return redirect()->back();
 	}
 }
