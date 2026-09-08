@@ -105,6 +105,13 @@ class TheDashboardController extends Controller
 	}
 
 	function employeemgt() {
-		return view("dashboard.employeemgt");
+		$collection = DB::table("users as u")
+					->leftJoin('divbelongtos as u2','u.id','=','u2.empid')
+					->whereNull("u2.empid")
+					->get();
+
+		$divs 	     = TheDivision::all();
+
+		return view("dashboard.employeemgt")->with(["collection" => $collection,"division" => $divs]);
 	}
 }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\divbelongto;
+
 class TheDivision extends Model
 {
     //
@@ -12,4 +14,6 @@ class TheDivision extends Model
 	protected $fillable = [
 		"divisionname","created_at","updated_at"
 	];
+
+
 }

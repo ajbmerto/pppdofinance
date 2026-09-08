@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TheDashboardController;
 use App\Http\Controllers\InputFrontController;
+use App\Http\Controllers\TheDivisionController;
+
 
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +35,7 @@ Route::middleware('auth')->group(function () {
 	Route::get("/getdetails/{theidid?}",[InputFrontController::class,"getdetails"])->name("getdetails");
 
 	Route::get("/employee",[TheDashboardController::class,"employeemgt"])->name("employeemgt");
+	Route::post("/saveemp",[TheDivisionController::class,"saveemp"])->name("saveemp");
 });
 
 Route::get("/getfunds", [TheDashboardController::class,"getfunds"])->name("getfunds");

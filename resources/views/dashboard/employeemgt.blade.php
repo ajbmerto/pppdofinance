@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Enterprise Employee & Division Assignment System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -201,12 +202,48 @@
                                 <th class="px-6 py-3.5">Employee</th>
                                 <th class="px-6 py-3.5">Assigned Division</th>
                                 <th class="px-6 py-3.5">User Type / Role</th>
-                                <th class="px-6 py-3.5">Status</th>
+                                <!-- <th class="px-6 py-3.5">Status</th> -->
                                 <th class="px-6 py-3.5 text-right">Quick Assignment / Actions</th>
                             </tr>
                         </thead>
                         <tbody id="employee-table-body" class="divide-y divide-slate-200 text-sm">
-                            <!-- Rows dynamically populated by JavaScript -->
+                            <?php
+                                if (count($collection) > 0) {
+                                    foreach($collection as $c) {
+                                        echo "<tr class='hover:bg-slate-50/80 transition-all-200'>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap'> 
+                                                    <div class='flex items-center space-x-3'>
+                                                        <div>
+                                                            <div class='font-semibold text-slate-800'>{$c->name}</div>
+                                                            <div class='text-xs text-slate-500'> {$c->email} </div>
+                                                        </div>
+                                                    </div>
+                                                  </td>";
+                                            echo "<td>";
+                                                echo "<select id='divsel'class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
+                                                        foreach($division as $d) {
+                                                            echo "<option value='{$d->divid}'> {$d->divisionname} </option>";
+                                                        }
+                                                 echo "</select>";
+                                                 echo "</td>";
+                                            echo "<td>";
+                                                echo "<select id='rolesel' class='text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500'>";
+                                                    echo "<option value='normal'> Staff </option>";
+                                                    echo "<option value='chief'> Division Chief </option>";
+                                                echo "</select>";
+                                            echo "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-right text-sm'>
+                                                        <button onclick='saveemp({$c->id})' class='text-sky-600 hover:text-sky-800 font-medium mr-3 inline-flex items-center text-xs px-3 py-2 border border-sky-600 rounded-md hover:bg-sky-50 transition'>
+                                                            <i class='fa-solid fa-pen-to-square mr-1'></i> Save
+                                                        </button>
+                                                        <button onclick='deleteemp({$c->id})' class='text-slate-400 hover:text-red-600 inline-flex items-center text-xs'>
+                                                            <i class='fa-solid fa-trash-can'></i>
+                                                        </button>
+                                                    </td>";
+                                        echo "</tr>";
+                                    }   
+                                }
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -420,591 +457,44 @@
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-    <script>
+<script>
+    
+    function deleteemp(id) {
+        alert(id);
+    }
 
-        // Default initial data set
-        const INITIAL_DIVISIONS = [
-            { id: 'DIV-UNASSIGNED', name: 'Unassigned Pool', code: 'NONE', color: 'amber', description: 'Employees awaiting division allocation' },
-            { id: 'DIV-IT', name: 'Information Technology', code: 'IT', color: 'sky', description: 'Core infrastructure, software, and systems support' },
-            { id: 'DIV-HR', name: 'Human Resources', code: 'HR', color: 'rose', description: 'Talent acquisition, employee relations, and payroll' },
-            { id: 'DIV-FIN', name: 'Finance & Accounting', code: 'FIN', color: 'emerald', description: 'Financial auditing, budgeting, and corporate accounts' },
-            { id: 'DIV-MKT', name: 'Marketing & Brand', code: 'MKT', color: 'purple', description: 'Public relations, digital media, and campaigns' },
-            { id: 'DIV-OPS', name: 'Operations & Logistics', code: 'OPS', color: 'teal', description: 'Supply chain management and internal facility operations' }
-        ];
+    function saveemp(id){
+        var divsel  = document.getElementById('divsel').value; 
+        var rolesel = document.getElementById('rolesel').value; 
+        
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            .getAttribute('content');
 
-        const INITIAL_EMPLOYEES = [
-            { id: 'EMP-101', name: 'Sarah Jenkins', email: 's.jenkins@company.com', divisionId: 'DIV-IT', userType: 'Division Lead', status: 'Active', dateJoined: '2022-03-15' },
-            { id: 'EMP-102', name: 'Michael Chen', email: 'm.chen@company.com', divisionId: 'DIV-IT', userType: 'Senior Staff', status: 'Active', dateJoined: '2021-08-10' },
-            { id: 'EMP-103', name: 'Amara Okafor', email: 'a.okafor@company.com', divisionId: 'DIV-HR', userType: 'Manager', status: 'Active', dateJoined: '2020-01-22' },
-            { id: 'EMP-104', name: 'David Miller', email: 'd.miller@company.com', divisionId: 'DIV-FIN', userType: 'Division Lead', status: 'Active', dateJoined: '2019-11-05' },
-            { id: 'EMP-105', name: 'Elena Rostova', email: 'e.rostova@company.com', divisionId: 'DIV-MKT', userType: 'Super Admin', status: 'Active', dateJoined: '2018-05-12' },
-            { id: 'EMP-106', name: 'James Wilson', email: 'j.wilson@company.com', divisionId: 'DIV-UNASSIGNED', userType: 'Staff', status: 'Active', dateJoined: '2024-02-01' },
-            { id: 'EMP-107', name: 'Sofia Rodriguez', email: 's.rodriguez@company.com', divisionId: 'DIV-OPS', userType: 'Staff', status: 'On Leave', dateJoined: '2023-06-18' },
-            { id: 'EMP-108', name: 'Lucas Vance', email: 'l.vance@company.com', divisionId: 'DIV-UNASSIGNED', userType: 'Auditor', status: 'Active', dateJoined: '2024-01-15' }
-        ];
-
-        const USER_TYPES_CONFIG = {
-            'Super Admin': { badge: 'bg-purple-100 text-purple-800 border-purple-200', scope: 'Global System', permissions: 'Full Access, Assign Roles, Create Divisions, System Config' },
-            'Division Lead': { badge: 'bg-indigo-100 text-indigo-800 border-indigo-200', scope: 'Division Level', permissions: 'Division Admin, Member Allocation, Resource Approval' },
-            'Manager': { badge: 'bg-sky-100 text-sky-800 border-sky-200', scope: 'Team Level', permissions: 'Team Operations, Direct Reports, Staff Reviews' },
-            'Senior Staff': { badge: 'bg-teal-100 text-teal-800 border-teal-200', scope: 'Assigned Division', permissions: 'Standard Actions, Task Execution, Senior Workflows' },
-            'Staff': { badge: 'bg-slate-100 text-slate-700 border-slate-200', scope: 'Assigned Division', permissions: 'Standard Member Access, Read & Submit Work' },
-            'Auditor': { badge: 'bg-amber-100 text-amber-800 border-amber-200', scope: 'Read-Only Global', permissions: 'View Division Logs & Analytics Only' }
-        };
-
-        // App Local Storage State
-        let divisions = [];
-        let employees = [];
-        let activeTab = 'table';
-        let chartInstance1 = null;
-        let chartInstance2 = null;
-
-        function loadState() {
-            const storedDivs = localStorage.getItem('divimanager_divisions');
-            const storedEmps = localStorage.getItem('divimanager_employees');
-
-            divisions = storedDivs ? JSON.parse(storedDivs) : [...INITIAL_DIVISIONS];
-            employees = storedEmps ? JSON.parse(storedEmps) : [...INITIAL_EMPLOYEES];
-        }
-
-        function saveState() {
-            localStorage.setItem('divimanager_divisions', JSON.stringify(divisions));
-            localStorage.setItem('divimanager_employees', JSON.stringify(employees));
-            renderAll();
-        }
-
-        function resetDataConfirmation() {
-            showConfirmationModal('Reset All Data?', 'This will restore default divisions and employees dataset.', () => {
-                divisions = [...INITIAL_DIVISIONS];
-                employees = [...INITIAL_EMPLOYEES];
-                saveState();
-                showToast('System reset to default state.', 'info');
-            });
-        }
-
-        function renderEmployeeTable() {
-            const tbody = document.getElementById('employee-table-body');
-            const emptyState = document.getElementById('table-empty-state');
-
-            const searchVal = document.getElementById('filter-search').value.toLowerCase();
-            const divFilter = document.getElementById('filter-division').value;
-            const typeFilter = document.getElementById('filter-usertype').value;
-            const statusFilter = document.getElementById('filter-status').value;
-
-            // Filter logic
-            const filtered = employees.filter(emp => {
-                const matchesSearch = emp.name.toLowerCase().includes(searchVal) ||
-                                      emp.email.toLowerCase().includes(searchVal) ||
-                                      emp.id.toLowerCase().includes(searchVal);
-                const matchesDiv = divFilter === 'ALL' || emp.divisionId === divFilter;
-                const matchesType = typeFilter === 'ALL' || emp.userType === typeFilter;
-                const matchesStatus = statusFilter === 'ALL' || emp.status === statusFilter;
-
-                return matchesSearch && matchesDiv && matchesType && matchesStatus;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
+        fetch('/saveemp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                id      : id,
+                divid   : divsel,
+                rolesel : rolesel
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (true) {
+                Alert("Employee Successfully Updated")
             }
-
-            emptyState.classList.add('hidden');
-
-            tbody.innerHTML = filtered.map(emp => {
-                const div = divisions.find(d => d.id === emp.divisionId) || { name: 'Unassigned', color: 'slate' };
-                const userTypeConf = USER_TYPES_CONFIG[emp.userType] || { badge: 'bg-slate-100 text-slate-700' };
-
-                let statusBadge = 'bg-emerald-100 text-emerald-700';
-                if (emp.status === 'On Leave') statusBadge = 'bg-amber-100 text-amber-700';
-                if (emp.status === 'Inactive') statusBadge = 'bg-slate-100 text-slate-500';
-
-                const divisionBadgeColor = getDivisionBadgeStyle(div.color);
-
-                return `
-                    <tr class="hover:bg-slate-50/80 transition-all-200">
-                        <!-- Employee Info -->
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-inner">
-                                    ${emp.name.split(' ').map(n=>n[0]).join('')}
-                                </div>
-                                <div>
-                                    <div class="font-semibold text-slate-800">${escapeHtml(emp.name)}</div>
-                                    <div class="text-xs text-slate-500">${escapeHtml(emp.email)} • <span class="text-slate-400">${emp.id}</span></div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <!-- Assigned Division Dropdown / Badge -->
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="badge-pill border ${divisionBadgeColor}">
-                                <i class="fa-solid fa-layer-group text-xs mr-1.5"></i> ${escapeHtml(div.name)}
-                            </span>
-                        </td>
-
-                        <!-- User Type -->
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="badge-pill border ${userTypeConf.badge}">
-                                <i class="fa-solid fa-user-gear text-xs mr-1.5"></i> ${emp.userType}
-                            </span>
-                        </td>
-
-                        <!-- Status -->
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 rounded-md text-xs font-medium ${statusBadge}">
-                                ${emp.status}
-                            </span>
-                        </td>
-
-                        <!-- Actions -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <button onclick="openEmployeeModal('${emp.id}')" class="text-sky-600 hover:text-sky-800 font-medium mr-3 inline-flex items-center text-xs">
-                                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit & Assign
-                            </button>
-                            <button onclick="confirmDeleteEmployee('${emp.id}')" class="text-slate-400 hover:text-red-600 inline-flex items-center text-xs">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderDivisionBoard() {
-            const grid = document.getElementById('division-board-grid');
-
-            grid.innerHTML = divisions.map(div => {
-                const members = employees.filter(e => e.divisionId === div.id);
-                const colorStyle = getDivisionHeaderStyle(div.color);
-
-                return `
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                        <!-- Division Header -->
-                        <div class="p-4 ${colorStyle.bg} border-b border-slate-100 flex justify-between items-start">
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-white/80 ${colorStyle.text} uppercase tracking-wider">${div.code}</span>
-                                    <h3 class="font-bold text-slate-800">${escapeHtml(div.name)}</h3>
-                                </div>
-                                <p class="text-xs text-slate-500 mt-1 line-clamp-2">${escapeHtml(div.description || 'No description provided.')}</p>
-                            </div>
-                            <span class="text-xs font-bold bg-white px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 shadow-xs">
-                                ${members.length} ${members.length === 1 ? 'member' : 'members'}
-                            </span>
-                        </div>
-
-                        <!-- Division Members List -->
-                        <div class="p-4 flex-1 space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
-                            ${members.length === 0 ? `
-                                <div class="text-center py-6 text-slate-400 text-xs italic">
-                                    No personnel assigned to this division.
-                                </div>
-                            ` : members.map(m => `
-                                <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-slate-100 transition-all-200">
-                                    <div class="flex items-center space-x-2.5 overflow-hidden">
-                                        <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] flex-shrink-0">
-                                            ${m.name.split(' ').map(n=>n[0]).join('')}
-                                        </div>
-                                        <div class="truncate">
-                                            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(m.name)}</p>
-                                            <p class="text-[10px] text-slate-500">${m.userType}</p>
-                                        </div>
-                                    </div>
-                                    <button onclick="openEmployeeModal('${m.id}')" title="Reassign" class="text-slate-400 hover:text-sky-600 text-xs px-1.5 py-1">
-                                        <i class="fa-solid fa-arrows-rotate"></i>
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <!-- Card Footer -->
-                        <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-xs">
-                            <button onclick="quickAssignToDiv('${div.id}')" class="text-sky-600 hover:text-sky-700 font-semibold inline-flex items-center">
-                                <i class="fa-solid fa-plus mr-1"></i> Add Member
-                            </button>
-                            ${div.id !== 'DIV-UNASSIGNED' ? `
-                                <button onclick="confirmDeleteDivision('${div.id}')" class="text-slate-400 hover:text-red-600 text-xs">
-                                    Remove Division
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderUserTypesMatrix() {
-            const tbody = document.getElementById('user-types-matrix-body');
-
-            tbody.innerHTML = Object.keys(USER_TYPES_CONFIG).map(typeKey => {
-                const conf = USER_TYPES_CONFIG[typeKey];
-                const count = employees.filter(e => e.userType === typeKey).length;
-
-                return `
-                    <tr class="hover:bg-slate-50/80 transition-all-200">
-                        <td class="px-4 py-3 font-semibold text-slate-800">${typeKey}</td>
-                        <td class="px-4 py-3">
-                            <span class="badge-pill border ${conf.badge}">
-                                ${typeKey}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-slate-600 text-xs font-medium">${conf.scope}</td>
-                        <td class="px-4 py-3 text-slate-500 text-xs">${conf.permissions}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full text-xs">${count}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function updateStatsAndDropdowns() {
-            // Stat Cards
-            document.getElementById('stat-total-employees').textContent = employees.length;
-            document.getElementById('stat-total-divisions').textContent = divisions.filter(d => d.id !== 'DIV-UNASSIGNED').length;
-
-            const unassignedCount = employees.filter(e => e.divisionId === 'DIV-UNASSIGNED').length;
-            document.getElementById('stat-unassigned').textContent = unassignedCount;
-
-            const privilegedCount = employees.filter(e => ['Super Admin', 'Division Lead', 'Manager'].includes(e.userType)).length;
-            document.getElementById('stat-privileged').textContent = privilegedCount;
-
-            // Populate Filter Division Dropdown
-            const filterDivSelect = document.getElementById('filter-division');
-            const currentFilterVal = filterDivSelect.value || 'ALL';
-            filterDivSelect.innerHTML = `<option value="ALL">All Divisions</option>` +
-                divisions.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
-            filterDivSelect.value = currentFilterVal;
-
-            // Populate Modal Division Dropdown
-            const empDivSelect = document.getElementById('emp-division');
-            empDivSelect.innerHTML = divisions.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
-        }
-
-        function renderAnalyticsCharts() {
-            if (activeTab !== 'analytics') return;
-
-            const divNames = divisions.map(d => d.name);
-            const divCounts = divisions.map(d => employees.filter(e => e.divisionId === d.id).length);
-
-            const userTypes = Object.keys(USER_TYPES_CONFIG);
-            const userTypeCounts = userTypes.map(t => employees.filter(e => e.userType === t).length);
-
-            // Chart 1: Division Doughnut
-            const ctx1 = document.getElementById('chartDivisionDistribution').getContext('2d');
-            if (chartInstance1) chartInstance1.destroy();
-            chartInstance1 = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: divNames,
-                    datasets: [{
-                        data: divCounts,
-                        backgroundColor: ['#f59e0b', '#0284c7', '#f43f5e', '#10b981', '#a855f7', '#14b8a6', '#64748b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
-                }
-            });
-
-            // Chart 2: User Types Bar Chart
-            const ctx2 = document.getElementById('chartUserTypeDistribution').getContext('2d');
-            if (chartInstance2) chartInstance2.destroy();
-            chartInstance2 = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: userTypes,
-                    datasets: [{
-                        label: 'Employee Count',
-                        data: userTypeCounts,
-                        backgroundColor: '#6366f1',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function switchTab(tabId) {
-            activeTab = tabId;
-            const tabs = ['table', 'board', 'roles', 'analytics'];
-
-            tabs.forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                const content = document.getElementById(`tab-content-${t}`);
-
-                if (t === tabId) {
-                    btn.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all-200 whitespace-nowrap bg-sky-600 text-white shadow-sm';
-                    content.classList.remove('hidden');
-                } else {
-                    btn.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all-200 whitespace-nowrap text-slate-600 hover:bg-slate-100';
-                    content.classList.add('hidden');
-                }
-            });
-
-            renderAll();
-        }
-
-        function renderAll() {
-            updateStatsAndDropdowns();
-            renderEmployeeTable();
-            renderDivisionBoard();
-            renderUserTypesMatrix();
-            renderAnalyticsCharts();
-        }
-
-        function applyFilters() {
-            renderEmployeeTable();
-        }
-
-        function clearFilters() {
-            document.getElementById('filter-search').value = '';
-            document.getElementById('filter-division').value = 'ALL';
-            document.getElementById('filter-usertype').value = 'ALL';
-            document.getElementById('filter-status').value = 'ALL';
-            renderEmployeeTable();
-        }
-
-        function openEmployeeModal(empId = null) {
-            const modal = document.getElementById('modal-employee');
-            const title = document.getElementById('employee-modal-title');
-            const form = document.getElementById('form-employee');
-
-            if (empId) {
-                const emp = employees.find(e => e.id === empId);
-                if (!emp) return;
-
-                title.textContent = 'Edit Employee & Division Assignment';
-                document.getElementById('emp-id').value = emp.id;
-                document.getElementById('emp-name').value = emp.name;
-                document.getElementById('emp-email').value = emp.email;
-                document.getElementById('emp-division').value = emp.divisionId;
-                document.getElementById('emp-usertype').value = emp.userType;
-                document.getElementById('emp-status').value = emp.status;
-            } else {
-                title.textContent = 'Add New Employee';
-                form.reset();
-                document.getElementById('emp-id').value = '';
-                document.getElementById('emp-division').value = 'DIV-UNASSIGNED';
-                document.getElementById('emp-usertype').value = 'Staff';
-                document.getElementById('emp-status').value = 'Active';
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeEmployeeModal() {
-            document.getElementById('modal-employee').classList.add('hidden');
-        }
-
-        function saveEmployee(event) {
-            event.preventDefault();
-
-            const id = document.getElementById('emp-id').value;
-            const name = document.getElementById('emp-name').value.trim();
-            const email = document.getElementById('emp-email').value.trim();
-            const divisionId = document.getElementById('emp-division').value;
-            const userType = document.getElementById('emp-usertype').value;
-            const status = document.getElementById('emp-status').value;
-
-            if (id) {
-                // Update existing
-                const index = employees.findIndex(e => e.id === id);
-                if (index !== -1) {
-                    employees[index] = { ...employees[index], name, email, divisionId, userType, status };
-                    showToast('Employee details updated successfully!', 'success');
-                }
-            } else {
-                // Create new
-                const newEmp = {
-                    id: 'EMP-' + Math.floor(100 + Math.random() * 900),
-                    name,
-                    email,
-                    divisionId,
-                    userType,
-                    status,
-                    dateJoined: new Date().toISOString().split('T')[0]
-                };
-                employees.push(newEmp);
-                showToast('New employee added and assigned!', 'success');
-            }
-
-            saveState();
-            closeEmployeeModal();
-        }
-
-        function quickAssignToDiv(divId) {
-            openEmployeeModal();
-            document.getElementById('emp-division').value = divId;
-        }
-
-        function confirmDeleteEmployee(empId) {
-            const emp = employees.find(e => e.id === empId);
-            if (!emp) return;
-
-            showConfirmationModal('Delete Employee Record?', `Are you sure you want to remove ${emp.name} (${emp.id})?`, () => {
-                employees = employees.filter(e => e.id !== empId);
-                saveState();
-                showToast('Employee record removed.', 'info');
-            });
-        }
-
-        function openDivisionModal() {
-            document.getElementById('form-division').reset();
-            document.getElementById('modal-division').classList.remove('hidden');
-        }
-
-        function closeDivisionModal() {
-            document.getElementById('modal-division').classList.add('hidden');
-        }
-
-        function saveDivision(event) {
-            event.preventDefault();
-
-            const name = document.getElementById('div-name').value.trim();
-            const code = document.getElementById('div-code').value.trim().toUpperCase();
-            const color = document.getElementById('div-color').value;
-            const description = document.getElementById('div-desc').value.trim();
-
-            const newDiv = {
-                id: 'DIV-' + code.replace(/[^A-Z0-9]/g, ''),
-                name,
-                code,
-                color,
-                description
-            };
-
-            divisions.push(newDiv);
-            saveState();
-            closeDivisionModal();
-            showToast(`Division "${name}" created successfully!`, 'success');
-        }
-
-        function confirmDeleteDivision(divId) {
-            const div = divisions.find(d => d.id === divId);
-            if (!div) return;
-
-            showConfirmationModal(
-                'Delete Division?',
-                `Deleting "${div.name}" will move all assigned members to the Unassigned Pool.`,
-                () => {
-                    // Move members to unassigned
-                    employees.forEach(e => {
-                        if (e.divisionId === divId) {
-                            e.divisionId = 'DIV-UNASSIGNED';
-                        }
-                    });
-                    // Remove division
-                    divisions = divisions.filter(d => d.id !== divId);
-                    saveState();
-                    showToast(`Division "${div.name}" deleted. Members moved to Unassigned.`, 'info');
-                }
-            );
-        }
-
-        function showConfirmationModal(title, message, onConfirm) {
-            const modal = document.getElementById('modal-confirm');
-            document.getElementById('confirm-title').textContent = title;
-            document.getElementById('confirm-message').textContent = message;
-
-            const btnCancel = document.getElementById('confirm-btn-cancel');
-            const btnProceed = document.getElementById('confirm-btn-proceed');
-
-            const cleanup = () => {
-                modal.classList.add('hidden');
-                btnCancel.onclick = null;
-                btnProceed.onclick = null;
-            };
-
-            btnCancel.onclick = cleanup;
-            btnProceed.onclick = () => {
-                cleanup();
-                onConfirm();
-            };
-
-            modal.classList.remove('hidden');
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-
-            let bg = 'bg-slate-800 text-white';
-            let icon = 'fa-check-circle text-emerald-400';
-
-            if (type === 'info') {
-                bg = 'bg-slate-800 text-white';
-                icon = 'fa-circle-info text-sky-400';
-            }
-
-            toast.className = `${bg} px-4 py-3 rounded-xl shadow-lg text-xs font-medium flex items-center space-x-2 pointer-events-auto transform transition-all duration-300 opacity-0 translate-y-2`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${escapeHtml(message)}</span>`;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.remove('opacity-0', 'translate-y-2');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function getDivisionBadgeStyle(color) {
-            const styles = {
-                sky: 'bg-sky-50 text-sky-700 border-sky-200',
-                indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                purple: 'bg-purple-50 text-purple-700 border-purple-200',
-                rose: 'bg-rose-50 text-rose-700 border-rose-200',
-                amber: 'bg-amber-50 text-amber-700 border-amber-200',
-                teal: 'bg-teal-50 text-teal-700 border-teal-200',
-                slate: 'bg-slate-50 text-slate-700 border-slate-200'
-            };
-            return styles[color] || styles.slate;
-        }
-
-        function getDivisionHeaderStyle(color) {
-            const styles = {
-                sky: { bg: 'bg-sky-50', text: 'text-sky-700' },
-                indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700' },
-                emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
-                purple: { bg: 'bg-purple-50', text: 'text-purple-700' },
-                rose: { bg: 'bg-rose-50', text: 'text-rose-700' },
-                amber: { bg: 'bg-amber-50', text: 'text-amber-700' },
-                teal: { bg: 'bg-teal-50', text: 'text-teal-700' },
-                slate: { bg: 'bg-slate-50', text: 'text-slate-700' }
-            };
-            return styles[color] || styles.slate;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-
-        window.onload = function() {
-            loadState();
-            renderAll();
-        };
-    </script>
+        })
+        .catch(error => {
+            alert(error);
+        });
+    }
+</script>
+  
 </body>
 </html>
