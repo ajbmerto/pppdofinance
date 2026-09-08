@@ -154,7 +154,7 @@ class InputFrontController extends Controller
 
 	function fundsource() {
 		$divs = TheDivision::all();
-		return view("dashboard.FundSource")->with(["division" => $divs]);
+		return view("dashboard.fundsource")->with(["division" => $divs]);
 	}
 
 	function savefund(Request $req) {
